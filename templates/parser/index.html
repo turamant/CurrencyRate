@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% load static %}
+
+{% block content %}
+
+<h2>Котировки всех криптовалют</h2>
+<table class="table table-bordered border-primary">
+    <tr>
+        <td>Монета</td>
+        <td>Доллар</td>
+         <td>Евро</td>
+         <td>Фунт</td>
+    </tr>
+    {% for key, values in data.items %}
+    <tr>
+        <td>{{ key }}</td>
+        {% for i, v in values.items %}
+        <td>{{ v }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

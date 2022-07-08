@@ -23,4 +23,8 @@
     </tr>
     {% endfor %}
 </table>
+<p><a href="{% url 'homepage' %}" class="btn btn-sm btn-info">на главную</a></p>
+<p><a href="{% url 'export_to_csv' %}" class="btn btn-sm btn-info">Экспорт в CSV файл</a></p>
+<p><a href="{% url 'export_to_xlsx' %}" class="btn btn-sm btn-info">Экспорт в XLSX файл</a></p>
+<p><a href="{% url 'export_to_pdf' %}" class="btn btn-sm btn-info">Экспорт в PDF файл</a></p>
 {% endblock %}

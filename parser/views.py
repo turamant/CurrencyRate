@@ -1,11 +1,10 @@
-import datetime
+from datetime import datetime
 import json
 import os
 
 import requests
 import csv
 import xlsxwriter
-
 from fpdf import FPDF, HTMLMixin
 
 from django.http import JsonResponse
@@ -13,36 +12,60 @@ from django.shortcuts import render, redirect
 
 from parser.forms import CoinForm
 
+
+class PDF(FPDF, HTMLMixin):
+    """HTML -> PDF"""
+    pass
+
+
 URL = "https://api.coingecko.com/api/v3/simple/price/?ids=bitcoin,ethereum,ripple,cardano," \
       "litecoin,monero,dogecoin,tether,solana,polkadot&vs_currencies=usd,eur,gbp"
 
-my_value = {}
+coin_rate = {}  # словарь котировок монет
 
 
-def current_date_time():
-    dt = datetime.datetime.now()
+def string_current_date_time():
+    """строковое представление даты и времени"""
+    dt = datetime.now()
     dt_string = dt.strftime("Date: %d/%m/%Y  time: %H:%M:%S")
     return dt_string
 
 
-def parser(url):
-    response = requests.get(url)
+def response_api():
+    """ответ на запрос от URL"""
+    response = requests.get(URL)
     data = json.loads(response.content.decode("utf-8"))
     return data
 
 
-def index(request):
-    data = parser(URL)
-    return render(request, 'parser/index.html', {'data': data})
+def view_index_all(request):
+    """показ котировок всех монет"""
+    data = response_api()
+    for k, v in data.items():
+        coin_rate[k] = v
+    return render(request, 'parser/index_all.html', {'data': data})
 
 
-def apiView(request):
-    data = parser(URL)
+def view_homepage(request):
+    """показ главной страницы"""
+    return render(request, 'parser/homepage.html')
+
+
+def view_json(request):
+    """показ api/json"""
+    data = response_api()
     return JsonResponse(data)
 
 
-def coin_create(request):
-    data = parser(URL)
+def came_back_and_clear_dict(request):
+    """очистить словарь и вернуться назад к форме"""
+    coin_rate.clear()
+    return redirect("form")
+
+
+def select_coins_from_form(request):
+    """выбрать монеты из формы"""
+    data = response_api()
     select_keys = []
     form = CoinForm()
     if request.method == "POST":
@@ -51,61 +74,47 @@ def coin_create(request):
             for key, value in form.cleaned_data.items():
                 if value:
                     select_keys.append(key)
-
             for k, v in data.items():
                 for i in select_keys:
                     if k == i:
-                        my_value[k] = v
-            return render(request, "parser/detail.html", {"data": my_value})
+                        coin_rate[k] = v
+            return render(request, "parser/detail.html", {"data": coin_rate})
     context = {
         "form": form,
     }
-    return render(request, "parser/homepage.html", context)
+    return render(request, "parser/form.html", context)
 
 
-def export_csv(request):
+def export_to_csv(request):
+    """экспортировать в csv"""
     directory = "directCSV"
-    basename = "csv"
-    suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-    file_name = ".".join([suffix, basename])
+    file_name = 'file_{}.csv'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
     if not os.path.isdir(directory):
         os.makedirs(directory)
     os.chdir(directory)
-    with open(file_name, 'w') as f:
+    with open(file_name, 'w', newline='') as f:
         w = csv.writer(f)
-        w.writerow(my_value.keys())
-        w.writerow(my_value.values())
+        w.writerow(string_current_date_time())
+        w.writerow(coin_rate.keys())
+        w.writerow(coin_rate.values())
     os.chdir(r'../')
-    my_value.clear()
-    return redirect("/")
+    coin_rate.clear()
+    return redirect("form")
 
 
-class PDF(FPDF, HTMLMixin):
-    pass
-
-
-def export_pdf(request):
+def export_to_pdf(request):
+    """экспортировать в pdf"""
     directory = "directPDF"
-    basename = "pdf"
-    suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-    file_name = ".".join([suffix, basename])
+    file_name = 'file_{}.pdf'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
     if not os.path.isdir(directory):
         os.makedirs(directory)
     os.chdir(directory)
-
     table1 = f"""<h1 align="center">Rate of selected coins</h1>
-    <p align="center">This is {current_date_time()}</p><table border="2" align="center" width="100%">
-        <thead>
-            <tr>
-        <th width=40%>Moneta</th>
-        <th width=20%>usd</th>
-        <th width=20%>euro</th>
-        <th width=20%>gbp</th>
-            </tr>
-        </thead>
-        <tbody>"""
+    <p align="center">This is {string_current_date_time()}</p><table border="2" align="center" 
+    width="100%"><thead><tr><th width=40%>Moneta</th><th width=20%>usd</th>
+    <th width=20%>euro</th><th width=20%>gbp</th></tr></thead><tbody>"""
     table2 = f""
-    for key, value in my_value.items():
+    for key, value in coin_rate.items():
         if key:
             table2 += f"<tr><td>{str(key)}</td>"
         for k, v in value.items():
@@ -119,47 +128,36 @@ def export_pdf(request):
     pdf.write_html(table)
     pdf.output(file_name)
     os.chdir(r'../')
-    my_value.clear()
-    return redirect("/")
+    coin_rate.clear()
+    return redirect("form")
 
 
-def export_xlsx(request):
+def export_to_xlsx(request):
+    """экспортировать в pdf"""
     directory = "directXLSX"
-    basename = "xlsx"
-    suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-    file_name = ".".join([suffix, basename])
+    file_name = 'file_{}.xlsx'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
     if not os.path.isdir(directory):
         os.makedirs(directory)
     os.chdir(directory)
-
     workbook = xlsxwriter.Workbook(file_name)
     worksheet = workbook.add_worksheet("My sheet")
     worksheet.write('A1', 'Moneta..')
     worksheet.write('B1', 'usd')
     worksheet.write('C1', 'euro')
     worksheet.write('D1', 'gbp')
-
-    # Some data we want to write to the worksheet.
+    worksheet.write('F1', string_current_date_time())
     scores = [
-
     ]
     count = 0
-    for key, value in my_value.items():
+    for key, value in coin_rate.items():
         if key:
-            print("key...", key)
             scores.append([key])
         for k, v in value.items():
             if k:
-                print("k...", k)
                 scores[count].append(v)
         count += 1
-    print("---scores---...", scores)
-    # Start from the first cell. Rows and
-    # columns are zero indexed.
     row = 1
     col = 0
-
-    # Iterate over the data and write it out row by row.
     for name, usd, euro, gbp in scores:
         worksheet.write(row, col, name)
         worksheet.write(row, col + 1, usd)
@@ -168,10 +166,8 @@ def export_xlsx(request):
         row += 1
     workbook.close()
     os.chdir(r'../')
-    my_value.clear()
-    return redirect("/")
+    coin_rate.clear()
+    return redirect("form")
 
 
-def back(request):
-    my_value.clear()
-    return redirect("/")
+

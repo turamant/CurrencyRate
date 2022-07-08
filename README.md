@@ -28,6 +28,10 @@
 <li>git clone this repo ...</li>
 </ul>
 <p>Установка зависимостей проекта</p>
-pip install -r requirements.txt
+<ul>
+<li>Создайте в папке "config" файл ".env"</li>
+<li>Добавте в него строку SECRET_KEY="..ваш пароль.."</li>
+<li>pip install -r requirements.txt</li>
+</ul>
 <p>Run the command(local webserver): python manage.py runserver</p>
 <p>Смотреть в браузере по адресу http://localhost:8000</p>

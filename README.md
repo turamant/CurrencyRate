@@ -18,3 +18,16 @@
 </ul>
 <p>Результаты импорта в XLSX и PDF должны иметь приятный читаемый вид,
 в идеале верстка должна быть примерно похожа на верстку на фронте</p>
+
+
+<p>Подготовка места установки на локальном компьютере</p>
+<ul>
+<li>mkdir taskmanager && cd taskmanager</li>
+<li>python -m venv venv</li>
+<li>source venv/bin/activate</li>
+<li>git clone this repo ...</li>
+</ul>
+<p>Установка зависимостей проекта</p>
+pip install -r requirements.txt
+<p>Run the command(local webserver): python manage.py runserver</p>
+<p>Смотреть в браузере по адресу http://localhost:8000</p>

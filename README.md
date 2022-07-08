@@ -20,18 +20,18 @@
 в идеале верстка должна быть примерно похожа на верстку на фронте</p>
 
 
-<p>Подготовка места установки на локальном компьютере</p>
+<h2>Подготовка места установки на локальном компьютере</h2>
 <ul>
 <li>mkdir taskmanager && cd taskmanager</li>
 <li>python -m venv venv</li>
 <li>source venv/bin/activate</li>
 <li>git clone this repo ...</li>
 </ul>
-<p>Установка зависимостей проекта</p>
+<h2>Установка зависимостей проекта</h2>
 <ul>
 <li>Создайте в папке "config" файл ".env"</li>
 <li>Добавте в него строку SECRET_KEY="..ваш пароль.."</li>
 <li>pip install -r requirements.txt</li>
 </ul>
-<p>Run the command(local webserver): python manage.py runserver</p>
+<h2>Run the command(local webserver): python manage.py runserver</h2>
 <p>Смотреть в браузере по адресу http://localhost:8000</p>

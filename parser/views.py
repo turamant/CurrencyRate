@@ -21,7 +21,7 @@ class PDF(FPDF, HTMLMixin):
 URL = "https://api.coingecko.com/api/v3/simple/price/?ids=bitcoin,ethereum,ripple,cardano," \
       "litecoin,monero,dogecoin,tether,solana,polkadot&vs_currencies=usd,eur,gbp"
 
-coin_rate = {}  # словарь котировок монет
+coin_rate = {}  # словарь котировок криптовалют
 
 
 def string_current_date_time():
@@ -48,6 +48,7 @@ def view_index_all(request):
 
 def view_homepage(request):
     """показ главной страницы"""
+    coin_rate.clear()
     return render(request, 'parser/homepage.html')
 
 
@@ -111,7 +112,7 @@ def export_to_pdf(request):
     os.chdir(directory)
     table1 = f"""<h1 align="center">Rate of selected coins</h1>
     <p align="center">This is {string_current_date_time()}</p><table border="2" align="center" 
-    width="100%"><thead><tr><th width=40%>Moneta</th><th width=20%>usd</th>
+    width="100%"><thead><tr><th width=40%>CryptoCurrency</th><th width=20%>usd</th>
     <th width=20%>euro</th><th width=20%>gbp</th></tr></thead><tbody>"""
     table2 = f""
     for key, value in coin_rate.items():
@@ -141,7 +142,7 @@ def export_to_xlsx(request):
     os.chdir(directory)
     workbook = xlsxwriter.Workbook(file_name)
     worksheet = workbook.add_worksheet("My sheet")
-    worksheet.write('A1', 'Moneta..')
+    worksheet.write('A1', 'CryptoCurrency')
     worksheet.write('B1', 'usd')
     worksheet.write('C1', 'euro')
     worksheet.write('D1', 'gbp')

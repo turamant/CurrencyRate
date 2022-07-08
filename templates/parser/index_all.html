@@ -6,10 +6,10 @@
 
 {% block content %}
 
-<h2>Котировки всех криптовалют</h2>
+<h2 class="center">Котировки всех криптовалют</h2>
 <table class="table table-bordered border-primary">
     <tr>
-        <td>Монета</td>
+        <td>Валюта</td>
         <td>Доллар</td>
          <td>Евро</td>
          <td>Фунт</td>
@@ -23,8 +23,8 @@
     </tr>
     {% endfor %}
 </table>
-<p><a href="{% url 'homepage' %}" class="btn btn-sm btn-info">на главную</a></p>
-<p><a href="{% url 'export_to_csv' %}" class="btn btn-sm btn-info">Экспорт в CSV файл</a></p>
-<p><a href="{% url 'export_to_xlsx' %}" class="btn btn-sm btn-info">Экспорт в XLSX файл</a></p>
-<p><a href="{% url 'export_to_pdf' %}" class="btn btn-sm btn-info">Экспорт в PDF файл</a></p>
+<p><a href="{% url 'export_to_csv' %}" class="btn btn-success btn btn-block">экспортировать в CSV файл</a></p>
+<p><a href="{% url 'export_to_xlsx' %}" class="btn btn-success btn btn-block">экспортировать в XLSX файл</a></p>
+<p><a href="{% url 'export_to_pdf' %}" class="btn btn-success btn btn-block">экспортировать в PDF файл</a></p>
+<p><a href="{% url 'homepage' %}" class="btn btn-warning btn btn-block">главная страница</a></p>
 {% endblock %}

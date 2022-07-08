@@ -6,12 +6,12 @@
 
 {% block content %}
 
-<h2> Форма выбора монет!</h2>
+<h2 class="center">Выберите криптовалюту</h2>
     <form method="POST" class="post-form" action="" novalidate>
     {% csrf_token %}
     {{ form|crispy }}
-    <button type="submit" class="btn btn-success">Получить котировку</button>
+    <p><button type="submit" class="btn btn-success btn btn-block">получить котировки криптовалют</button></p>
     </form>
-<p><a href="{% url 'homepage' %}" class="btn btn-sm btn-info">на главную</a></p>
+<p><a href="{% url 'homepage' %}" class="btn btn-warning btn btn-block">на главную страницу</a></p>
 
 {% endblock %}

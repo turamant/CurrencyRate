@@ -19,3 +19,5 @@ urllib3==1.26.9
 webencodings==0.5.1
 XlsxWriter==3.0.3
 python-dotenv~=0.20.0
+xhtml2pdf~=0.2.8
+reportlab~=3.6.10

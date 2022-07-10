@@ -2,18 +2,25 @@ from datetime import datetime
 import json
 import os
 
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.lib.pagesizes import elevenSeventeen
+
 import requests
 import csv
 import xlsxwriter
 from fpdf import FPDF, HTMLMixin
 
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from django.shortcuts import render, redirect
 
+from parser import models
 from parser.forms import CoinForm
+from parser.models import Document
 
 
-class PDF(FPDF, HTMLMixin):
+class HtmlPdf(FPDF, HTMLMixin):
     """HTML -> PDF"""
     pass
 
@@ -22,6 +29,8 @@ URL = "https://api.coingecko.com/api/v3/simple/price/?ids=bitcoin,ethereum,rippl
       "litecoin,monero,dogecoin,tether,solana,polkadot&vs_currencies=usd,eur,gbp"
 
 coin_rate = {}  # словарь котировок криптовалют
+
+
 
 
 def string_current_date_time():
@@ -43,7 +52,7 @@ def view_index_all(request):
     data = response_api()
     for k, v in data.items():
         coin_rate[k] = v
-    return render(request, 'parser/index_all.html', {'data': data})
+    return render(request, 'parser/index-all.html', {'data': data})
 
 
 def view_homepage(request):
@@ -88,65 +97,64 @@ def select_coins_from_form(request):
 
 def export_to_csv(request):
     """экспортировать в csv"""
-    directory = "directCSV"
-    file_name = 'file_{}.csv'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-    os.chdir(directory)
-    with open(file_name, 'w', newline='') as f:
-        w = csv.writer(f)
-        w.writerow(string_current_date_time())
-        w.writerow(coin_rate.keys())
-        w.writerow(coin_rate.values())
-    os.chdir(r'../')
-    coin_rate.clear()
-    return redirect("form")
+    file_name = '{}.csv'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
+    response = HttpResponse(
+        content_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={file_name}'},
+    )
+    writer = csv.writer(response)
+    writer.writerow("cryptocurrency 2022 (c) turamant")
+    writer.writerow({datetime.now()})
+    writer.writerow(coin_rate.keys())
+    writer.writerow(coin_rate.values())
+    return response
 
 
 def export_to_pdf(request):
     """экспортировать в pdf"""
-    directory = "directPDF"
-    file_name = 'file_{}.pdf'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-    os.chdir(directory)
-    table1 = f"""<h1 align="center">Rate of selected coins</h1>
-    <p align="center">This is {string_current_date_time()}</p><table border="2" align="center" 
-    width="100%"><thead><tr><th width=40%>CryptoCurrency</th><th width=20%>usd</th>
-    <th width=20%>euro</th><th width=20%>gbp</th></tr></thead><tbody>"""
-    table2 = f""
+    file_name = '{}.pdf'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=elevenSeventeen, bottomup=0)
+    text_obj = c.beginText()
+    text_obj.setTextOrigin(inch, inch)
+    text_obj.setFont("Helvetica", 12)
+
+    lines = []
+
     for key, value in coin_rate.items():
-        if key:
-            table2 += f"<tr><td>{str(key)}</td>"
+        lines.append(str(key))
         for k, v in value.items():
-            if k:
-                table2 += f"<td>{str(v)}</td>"
-        table2 += f"</tr>"
-    table3 = f"""</tbody></table>"""
-    table = f"{table1}{table2}{table3}"
-    pdf = PDF()
-    pdf.add_page()
-    pdf.write_html(table)
-    pdf.output(file_name)
-    os.chdir(r'../')
-    coin_rate.clear()
-    return redirect("form")
+            lines.append((str(k)))
+            lines.append(str(v))
+
+    for line in lines:
+        text_obj.textLine(line)
+
+    c.drawString(20, 10, f'{string_current_date_time()}')
+    c.drawString(300, 20, "Cryptocurrency rate 2022 (c) turamant")
+    c.drawText(text_obj)
+    c.showPage()
+    c.save()
+    buf.seek(0)
+    response = FileResponse(buf, as_attachment=True, filename=file_name)
+    return response
 
 
 def export_to_xlsx(request):
     """экспортировать в pdf"""
-    directory = "directXLSX"
-    file_name = 'file_{}.xlsx'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-    os.chdir(directory)
-    workbook = xlsxwriter.Workbook(file_name)
+    file_name = '{}.xlsx'.format(datetime.now().strftime("%d%m%Y_%H%M%S"))
+    response = HttpResponse(
+        content_type='text/xlsx',
+        headers={'Content-Disposition': f'attachment; filename={file_name}'},
+    )
+    workbook = xlsxwriter.Workbook(response)
     worksheet = workbook.add_worksheet("My sheet")
-    worksheet.write('A1', 'CryptoCurrency')
-    worksheet.write('B1', 'usd')
-    worksheet.write('C1', 'euro')
-    worksheet.write('D1', 'gbp')
-    worksheet.write('F1', string_current_date_time())
+    worksheet.write('A3', 'Crypto')
+    worksheet.write('B3', 'usd')
+    worksheet.write('C3', 'euro')
+    worksheet.write('D3', 'gbp')
+    worksheet.write('F3', string_current_date_time())
+    worksheet.write('E1', 'CryptoCurrencyRate 2022 (c) turamant')
     scores = [
     ]
     count = 0
@@ -157,7 +165,7 @@ def export_to_xlsx(request):
             if k:
                 scores[count].append(v)
         count += 1
-    row = 1
+    row = 3
     col = 0
     for name, usd, euro, gbp in scores:
         worksheet.write(row, col, name)
@@ -166,9 +174,42 @@ def export_to_xlsx(request):
         worksheet.write(row, col + 3, gbp)
         row += 1
     workbook.close()
-    os.chdir(r'../')
-    coin_rate.clear()
-    return redirect("form")
+    return response
+
+#===========================================  дополнительные ф-ции
+
+def all_file_view(request):
+    """Показать список всех файлов в БД"""
+    documents = models.Document.objects.all()
+    return render(request, 'parser/all-file.html', context={
+        "files": documents})
 
 
+def pdf_view(request, id):
+    """ Готово вывод на экран файла PDF"""
+    obj = Document.objects.get(pk=id)
+    file = str(obj.uploadedFile)
+    filepath = os.path.join('media', file)
+    return FileResponse(open(filepath, 'rb'), content_type='application/pdf')
+
+
+def uploadFile(request):
+    """Загрузить в БД свои файлы"""
+    if request.method == "POST":
+        # Fetching the form data
+        fileTitle = request.POST["fileTitle"]
+        uploadedFile = request.FILES["uploadedFile"]
+
+        # Saving the information in the database
+        document = models.Document(
+            title=fileTitle,
+            uploadedFile=uploadedFile
+        )
+        document.save()
+
+    documents = models.Document.objects.all()
+
+    return render(request, "parser/upload-file.html", context={
+        "files": documents
+    })
 

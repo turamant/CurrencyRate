@@ -31,7 +31,7 @@
 <h2>Установка зависимостей проекта</h2>
 <ul>
 <li>Создайте в папке "config" файл ".env"</li>
-<li>Добавте в него строку SECRET_KEY="..ваш пароль.."</li>
+<li>Добавте в него строки SECRET_KEY="..ваш пароль..", NAME_BD="..имя БД..", USER_BD="..юзер..",PASSWORD_BD="..пароль.."</li>
 <li>pip install -r requirements.txt</li>
 </ul>
 <h2>Run the command(local webserver): python manage.py runserver</h2>

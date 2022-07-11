@@ -37,5 +37,5 @@
 <h2>Run the command(local webserver): python manage.py runserver</h2>
 <p>Смотреть в браузере по адресу http://localhost:8000</p>
 <h2>Скриншоты</h2>
-![Alt text](/relative/path/to/img.jpg?raw=true "Optional Title")
+![Alt text](/static/images/bitcoin.png?raw=true "Optional Title")
 

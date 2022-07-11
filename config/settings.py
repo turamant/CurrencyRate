@@ -88,9 +88,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'currencyrate',
-        'USER': 'askvart',
-        'PASSWORD': 'a_L908zx_q',
+        'NAME': '##########',
+        'USER': '#########',
+        'PASSWORD': '##########',
         'HOST': 'localhost',
         'PORT': '',
     }
